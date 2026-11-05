@@ -1,0 +1,77 @@
+# بناء تطبيق دورلي للآيفون على ماك سحابيّ (GitHub Actions) — ما نحتاج ماك عندنا.
+# كلّ push (أو تشغيل يدويّ من تبويب Actions) يطلّع:
+#   Studio-unsigned.ipa  ← ينصب بـ Sideloadly/AltStore بحساب Apple ID (حتى قبل شهادة المطوّر)
+#   Studio-signed.ipa    ← لمّا تضيف أسرار الشهادة (APPLE_P12_BASE64 …) — جاهز لـ TestFlight/App Store
+name: iOS build
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      HAS_P12: ${{ secrets.APPLE_P12_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | sort -V | tail -1)" && xcodebuild -version
+
+      - name: Generate project (XcodeGen)
+        run: brew install xcodegen && xcodegen generate
+
+      - name: Build (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild -project Studio.xcodeproj -scheme Studio -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            SYMROOT="$PWD/build" build | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build.log   # فشل البناء ⇒ نوقف هنا (مو نطلّع ipa ناقص)
+          test -d build/Release-iphoneos/Studio.app
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload && cp -R build/Release-iphoneos/Studio.app Payload/
+          zip -qry Studio-unsigned.ipa Payload
+
+      - name: Simulator build (للتأكّد إنّه يشتغل على المحاكي)
+        run: |
+          set -o pipefail
+          xcodebuild -project Studio.xcodeproj -scheme Studio -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO SYMROOT="$PWD/build-sim" build | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+
+      - name: Signed IPA (إذا الأسرار موجودة)
+        if: env.HAS_P12 == 'true'
+        env:
+          P12: ${{ secrets.APPLE_P12_BASE64 }}
+          P12_PASS: ${{ secrets.APPLE_P12_PASSWORD }}
+          PROFILE: ${{ secrets.APPLE_PROFILE_BASE64 }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          KC=build.keychain; security create-keychain -p ci $KC; security default-keychain -s $KC; security unlock-keychain -p ci $KC
+          echo "$P12" | base64 --decode > cert.p12
+          security import cert.p12 -k $KC -P "$P12_PASS" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k ci $KC
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/studio.mobileprovision
+          UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/studio.mobileprovision | plutil -extract UUID raw -)
+          METHOD=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/studio.mobileprovision | grep -q ProvisionedDevices && echo ad-hoc || echo app-store)
+          xcodebuild -project Studio.xcodeproj -scheme Studio -configuration Release -archivePath Studio.xcarchive \
+            DEVELOPMENT_TEAM=$TEAM_ID CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE=$UUID CODE_SIGN_IDENTITY="Apple Distribution" archive
+          cat > export.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict><key>method</key><string>$METHOD</string><key>teamID</key><string>$TEAM_ID</string>
+          <key>provisioningProfiles</key><dict><key>watch.dawwirli.studio</key><string>$UUID</string></dict></dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath Studio.xcarchive -exportPath out -exportOptionsPlist export.plist
+          cp out/*.ipa Studio-signed.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Studio-iOS
+          path: |
+            Studio-*.ipa
+            build.log
