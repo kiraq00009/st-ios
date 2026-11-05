@@ -26,6 +26,7 @@ struct DawwirliHome: View {
 
                     // الأدوات
                     VStack(spacing: 0) {
+                        tool("bolt.fill", "أوامر سريعة", "إعلان، إشعار للكلّ، إخفاء عمل، صيانة", ST.red) { ActionsView() }
                         tool("message.fill", "محادثات الدعم", jint(c, "unread") > 0 ? "\(jint(c, "unread")) غير مقروءة" : "\(jarr(c, "list").count) محادثة", ST.am, badge: jint(c, "unread")) { ChatList() }
                         tool("tray.full.fill", "طلبات المستخدمين", "\(reqs.filter { !($0["fulfilled"] as? Bool ?? false) }.count) بانتظار التوفير", ST.blue,
                              badge: reqs.filter { ($0["unreadAdmin"] as? Bool) == true }.count) { RequestsView() }
