@@ -176,7 +176,7 @@ struct DawwirliCard: View {
             ZStack {
                 ST.s1
                 RadialGradient(colors: [ST.am2.opacity(0.22), Color.clear], center: .topTrailing, startRadius: 0, endRadius: 260)
-            }, in: RoundedRectangle(cornerRadius: 24))
+            }.clipShape(RoundedRectangle(cornerRadius: 24)))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(ST.am.opacity(0.3)))
         .task {
             while !Task.isCancelled {
