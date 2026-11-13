@@ -59,7 +59,7 @@ enum DW {
     static let session: URLSession = {
         let c = URLSessionConfiguration.default
         c.timeoutIntervalForRequest = 25; c.requestCachePolicy = .reloadIgnoringLocalCacheData
-        c.httpAdditionalHeaders = ["User-Agent": "Dawwirli-Studio/1.0"]
+        c.httpAdditionalHeaders = ["User-Agent": "Dawwirli-Studio/2.0"]
         return URLSession(configuration: c)
     }()
     static func enc(_ s: String) -> String { s.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? s }
@@ -81,6 +81,15 @@ enum DW {
         guard let t = Vault.get(), let u = url(path, t) else { throw Err.auth }
         var r = URLRequest(url: u); r.httpMethod = "POST"; r.setValue("application/json", forHTTPHeaderField: "Content-Type")
         r.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (d, resp) = try await session.data(for: r)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        if code == 401 || code == 403 { throw Err.auth }
+        guard (200..<300).contains(code) else { throw Err.net }
+        return (try? JSONSerialization.jsonObject(with: d) as? J) ?? [:]
+    }
+    @discardableResult static func del(_ path: String) async throws -> J {
+        guard let t = Vault.get(), let u = url(path, t) else { throw Err.auth }
+        var r = URLRequest(url: u); r.httpMethod = "DELETE"
         let (d, resp) = try await session.data(for: r)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         if code == 401 || code == 403 { throw Err.auth }

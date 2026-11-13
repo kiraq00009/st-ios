@@ -1,87 +1,214 @@
 import SwiftUI
 
 // MARK: - لوحة دورلي (الرئيسيّة)
+struct ToolItem: Identifiable {
+    let id: String; let icon: String; let name: String; let tint: Color
+    var badge = 0; var web = false
+    let dest: AnyView
+}
+
 struct DawwirliHome: View {
     var body: some View {
         Live(every: 12, load: { () async throws -> (J, J, J, J) in
             async let s = DW.get("/api/admin/stats")
-            async let h = DW.get("/api/admin/health")
             async let c = DW.get("/api/admin/chat")
             async let r = DW.get("/api/requests")
-            return (try await s, try await h, try await c, try await r)
+            async let w = DW.get("/api/admin/supwatch")
+            return (try await s, try await c, try await r, (try? await w) ?? [:])
         }) { v, _ in
-            let (s, h, c, r) = v
-            let u = jobj(s, "usage"), vod = jobj(s, "vod"), live = jobj(s, "live"), disk = jobj(s, "disk"), cache = jobj(s, "cache")
-            let reqs = jarr(r, "items")
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                        Tile(value: "\(jint(u, "onlineNow"))", label: "متّصل هسه", icon: "person.2.fill", tint: ST.green)
-                        Tile(value: "\(jint(u, "active24h"))", label: "زوّار آخر ٢٤ ساعة", icon: "chart.bar.fill", tint: ST.blue)
-                        Tile(value: "\(jint(vod, "activeStreams")) / \(jint(vod, "capTotal"))", label: "خطوط الأفلام المشغولة", icon: "film.fill", tint: ST.am)
-                        Tile(value: "\(jint(live, "viewersNow"))", label: "يشوفون المباشر", icon: "dot.radiowaves.left.and.right", tint: ST.red)
-                        Tile(value: "\(jint(u, "loadsToday"))", label: "فتحات اليوم", icon: "arrow.down.app.fill", tint: ST.violet)
-                        Tile(value: "\(jint(disk, "usedPct"))٪", label: "القرص (\(jint(disk, "freeGB")) GB فاضي)", icon: "internaldrive.fill", tint: jint(disk, "usedPct") > 90 ? ST.red : ST.green)
-                    }
-
-                    // الأدوات
-                    VStack(spacing: 0) {
-                        tool("bolt.fill", "أوامر سريعة", "إعلان، إشعار للكلّ، إخفاء عمل، صيانة", ST.red) { ActionsView() }
-                        tool("message.fill", "محادثات الدعم", jint(c, "unread") > 0 ? "\(jint(c, "unread")) غير مقروءة" : "\(jarr(c, "list").count) محادثة", ST.am, badge: jint(c, "unread")) { ChatList() }
-                        tool("tray.full.fill", "طلبات المستخدمين", "\(reqs.filter { !($0["fulfilled"] as? Bool ?? false) }.count) بانتظار التوفير", ST.blue,
-                             badge: reqs.filter { ($0["unreadAdmin"] as? Bool) == true }.count) { RequestsView() }
-                        tool("eye.fill", "يُشاهَد الآن", "الأعمال اللي ينشافون هسه", ST.green) { WatchingView() }
-                        tool("sparkles", "مساعد دورلي", "الإحصائيّات وشنو يسألون", ST.violet) { BotStatsView() }
-                        tool("exclamationmark.bubble.fill", "الملاحظات والبلاغات", "اقتراحات ومشاكل المستخدمين", Color(red: 1, green: 0.42, blue: 0.52)) { FeedbackView() }
-                        tool("flame.fill", "الأكثر مشاهدة", "أعلى ٢٠ عمل", ST.am2) { TopView(items: jarr(s, "topTitles")) }
-                    }
-                    .background(ST.s1, in: RoundedRectangle(cornerRadius: 18))
-                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(white: 1, opacity: 0.07)))
-
-                    // الخطوط والمزوّدين
-                    Card {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("خطوط المزوّدين").font(.cairo(16, .heavy)).foregroundStyle(Color.white)
-                            ForEach(Array(jarr(h, "providers").enumerated()), id: \.offset) { _, p in
-                                let act = jint(p, "active"), mx = max(1, jint(p, "max"))
-                                HStack(spacing: 10) {
-                                    Circle().fill(jstr(p, "status") == "ok" || jstr(p, "status") == "Active" ? ST.green : (jstr(p, "status").isEmpty ? ST.tx3 : ST.red)).frame(width: 8, height: 8)
-                                    Text(jstr(p, "key").uppercased()).font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundStyle(Color.white).frame(width: 46, alignment: .leading)
-                                    Text(jstr(p, "status")).font(.cairo(12)).foregroundStyle(ST.tx3).lineLimit(1)
-                                    Spacer()
-                                    Text("\(act)/\(mx)").font(.system(size: 13, weight: .bold, design: .rounded)).foregroundStyle(act >= mx ? ST.red : ST.tx2)
-                                }
-                            }
-                            Divider().overlay(Color(white: 1, opacity: 0.08))
-                            HStack {
-                                Label("كاش \(jint(cache, "readyCount")) جاهز", systemImage: "bolt.fill")
-                                Spacer()
-                                Label("\(jint(cache, "convertingCount")) يتحوّل", systemImage: "gearshape.2.fill")
-                            }.font(.cairo(12)).foregroundStyle(ST.tx3)
-                        }
-                    }
-                }
-                .padding(16)
-            }
+            HomeBody(s: v.0, c: v.1, r: v.2, w: v.3)
         }
         .background(STBackground())
         .navigationTitle("Dawwirli").navigationBarTitleDisplayMode(.inline)
     }
+}
 
-    private func tool<D: View>(_ ic: String, _ t: String, _ sub: String, _ c: Color, badge: Int = 0, @ViewBuilder dest: @escaping () -> D) -> some View {
-        NavigationLink(destination: dest) {
-            HStack(spacing: 12) {
-                Image(systemName: ic).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.white)
-                    .frame(width: 36, height: 36).background(c.gradient, in: RoundedRectangle(cornerRadius: 10))
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(t).font(.cairo(15, .bold)).foregroundStyle(Color.white)
-                    Text(sub).font(.cairo(11.5)).foregroundStyle(ST.tx3).lineLimit(1)
+struct HomeBody: View {
+    let s: J; let c: J; let r: J; let w: J
+    private let cols2 = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
+    private let cols3 = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                status
+                tiles
+                waitingCard
+                ForEach(Array(groups.enumerated()), id: \.offset) { _, g in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(g.0).font(.cairo(16, .heavy)).foregroundStyle(Color.white)
+                        LazyVGrid(columns: cols3, spacing: 10) { ForEach(g.1) { t in ToolTile(t: t) } }
+                    }
                 }
-                Spacer()
-                if badge > 0 { Text("\(badge)").font(.system(size: 12, weight: .heavy)).foregroundStyle(Color.white).frame(minWidth: 22, minHeight: 22).background(ST.red, in: Capsule()) }
-                Image(systemName: "chevron.left").font(.system(size: 12, weight: .bold)).foregroundStyle(ST.tx3)
+                lines
             }
-            .padding(.horizontal, 14).padding(.vertical, 11).contentShape(Rectangle())
+            .padding(16)
+        }
+    }
+
+    // الحالة العامّة
+    private var status: some View {
+        let maint = jbool(s, "maintenance"), up = jint(s, "uptimeMin"), wd = jobj(s, "watchdog")
+        return HStack(spacing: 12) {
+            ZStack {
+                Circle().fill((maint ? ST.red : ST.green).opacity(0.18)).frame(width: 46, height: 46)
+                Image(systemName: maint ? "wrench.and.screwdriver.fill" : "checkmark.seal.fill").font(.system(size: 19, weight: .bold)).foregroundStyle(maint ? ST.red : ST.green)
+            }
+            VStack(alignment: .leading, spacing: 1) {
+                Text(maint ? "الموقع بوضع الصيانة" : "الموقع شغّال").font(.cairo(17, .heavy)).foregroundStyle(Color.white)
+                Text("شغّال من " + (up >= 1440 ? "\(up / 1440) يوم" : (up >= 60 ? "\(up / 60) ساعة" : "\(up) دقيقة")) + " · الحمل " + String(format: "%.1f", jdbl(wd, "load")))
+                    .font(.cairo(12)).foregroundStyle(ST.tx3)
+            }
+            Spacer(minLength: 0)
+            NavigationLink { HealthView() } label: {
+                Text("التفاصيل").font(.cairo(12.5, .bold)).foregroundStyle(ST.am).padding(.horizontal, 12).padding(.vertical, 6).background(ST.am.opacity(0.14), in: Capsule())
+            }.buttonStyle(.plain)
+        }
+        .padding(14)
+        .background(
+            ZStack { ST.s1; RadialGradient(colors: [(maint ? ST.red : ST.green).opacity(0.16), Color.clear], center: .topLeading, startRadius: 0, endRadius: 240) }
+                .clipShape(RoundedRectangle(cornerRadius: 20)))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke((maint ? ST.red : ST.green).opacity(0.28)))
+    }
+
+    private var tiles: some View {
+        let u = jobj(s, "usage"), vod = jobj(s, "vod"), live = jobj(s, "live"), disk = jobj(s, "disk")
+        return LazyVGrid(columns: cols2, spacing: 10) {
+            Tile(value: "\(jint(u, "onlineNow"))", label: "متّصل هسه", icon: "person.2.fill", tint: ST.green)
+            Tile(value: "\(jint(u, "active24h"))", label: "زوّار آخر ٢٤ ساعة", icon: "chart.bar.fill", tint: ST.blue)
+            Tile(value: "\(jint(vod, "activeStreams")) / \(jint(vod, "capTotal"))", label: "خطوط الأفلام المشغولة", icon: "film.fill", tint: ST.am)
+            Tile(value: "\(jint(live, "viewersNow"))", label: "يشوفون المباشر", icon: "dot.radiowaves.left.and.right", tint: ST.red)
+            Tile(value: "\(jint(u, "loadsToday"))", label: "فتحات اليوم", icon: "arrow.down.app.fill", tint: ST.violet)
+            Tile(value: "\(jint(disk, "usedPct"))٪", label: "القرص (\(jint(disk, "freeGB")) GB فاضي)", icon: "internaldrive.fill", tint: jint(disk, "usedPct") > 90 ? ST.red : ST.green)
+        }
+    }
+
+    // منو ينتظر ردّك
+    @ViewBuilder private var waitingCard: some View {
+        let waiting = jarr(w, "waiting")
+        if !waiting.isEmpty {
+            Card {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Head(icon: "hourglass", title: "ينتظرون ردّك", sub: "\(waiting.count) محادثة بلا ردّ", tint: ST.am2)
+                        NavigationLink { SupWatchView() } label: { Text("الكلّ").font(.cairo(12.5, .bold)).foregroundStyle(ST.am) }.buttonStyle(.plain)
+                    }
+                    ForEach(Array(waiting.prefix(3).enumerated()), id: \.offset) { _, x in
+                        NavigationLink { ChatThread(dev: jstr(x, "dev"), name: jstr(x, "name")) } label: {
+                            HStack(spacing: 10) {
+                                Text(String(jstr(x, "name").first ?? "؟")).font(.system(size: 14, weight: .heavy)).foregroundStyle(ST.onAm).frame(width: 34, height: 34).background(ST.am.gradient, in: Circle())
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(jstr(x, "name").isEmpty ? "زائر" : jstr(x, "name")).font(.cairo(13, .bold)).foregroundStyle(Color.white)
+                                    Text(jstr(x, "text")).font(.cairo(12)).foregroundStyle(ST.tx2).lineLimit(1)
+                                }
+                                Spacer(minLength: 0)
+                                Text(jstr(x, "ago")).font(.cairo(11)).foregroundStyle(ST.tx3)
+                            }.contentShape(Rectangle())
+                        }.buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    // خطوط المزوّدين (ملخّص)
+    private var lines: some View {
+        let cache = jobj(s, "cache")
+        return NavigationLink { ProvidersView() } label: {
+            Card {
+                HStack {
+                    Head(icon: "antenna.radiowaves.left.and.right", title: "الخطوط والكاش", sub: "\(jint(cache, "readyCount")) عمل جاهز · \(jint(cache, "convertingCount")) يتحوّل", tint: ST.blue)
+                    Image(systemName: "chevron.left").foregroundStyle(ST.tx3)
+                }
+            }
+        }.buttonStyle(.plain)
+    }
+
+    private func t<V: View>(_ id: String, _ icon: String, _ name: String, _ tint: Color, badge: Int = 0, _ v: V) -> ToolItem {
+        ToolItem(id: id, icon: icon, name: name, tint: tint, badge: badge, dest: AnyView(v))
+    }
+    private func web(_ path: String, _ icon: String, _ name: String, _ tint: Color) -> ToolItem {
+        ToolItem(id: "w:" + path, icon: icon, name: name, tint: tint, web: true, dest: AnyView(WebTool(path: path, title: name)))
+    }
+
+    private var groups: [(String, [ToolItem])] {
+        let reqs = jarr(r, "items")
+        let pink = Color(red: 1, green: 0.42, blue: 0.52), cyan = Color(red: 0.2, green: 0.8, blue: 0.85)
+        let g0: [ToolItem] = [
+                t("chat", "message.fill", "محادثات الدعم", ST.am, badge: jint(c, "unread"), ChatList()),
+                t("req", "tray.full.fill", "طلبات الزوّار", ST.blue, badge: reqs.filter { ($0["unreadAdmin"] as? Bool) == true }.count, RequestsView()),
+                t("sup", "hourglass", "المتابعة", ST.am2, badge: jarr(w, "waiting").count, SupWatchView()),
+                t("fb", "exclamationmark.bubble.fill", "الملاحظات", pink, FeedbackView()),
+                t("bot", "sparkles", "مساعد دورلي", ST.violet, BotStatsView()),
+                web("botadmin.html", "graduationcap.fill", "تعليم المساعد", ST.green),
+        ]
+        let g1: [ToolItem] = [
+                t("quick", "megaphone.fill", "إعلان وإشعار", ST.red, ActionsView()),
+                t("pop", "rectangle.portrait.on.rectangle.portrait.fill", "إعلانات منبثقة", ST.am2, AdsView(kind: .pop)),
+                t("hads", "rectangle.stack.fill", "بنر الرئيسيّة", ST.am, AdsView(kind: .home)),
+                web("tgbot.html", "paperplane.fill", "بوت التليكرام", Color(red: 0.16, green: 0.67, blue: 0.93)),
+                web("messages.html", "envelope.fill", "رسائل الطلبات", pink),
+                t("reacts", "face.smiling.fill", "ردود الفعل", cyan, ReactsView()),
+        ]
+        let g2: [ToolItem] = [
+                t("new", "sparkle", "جديد دورلي", ST.violet, NewestView()),
+                t("daily", "target", "ترشيح اليوم", ST.am, DailyView()),
+                t("hide", "eye.slash.fill", "إخفاء عمل", pink, HideView()),
+                web("manager.html", "square.grid.3x3.fill", "مدير المحتوى", ST.blue),
+                web("dl.html", "arrow.down.circle.fill", "التنزيلات", ST.green),
+                web("studio.html", "film.stack.fill", "استوديو الريلز", ST.am2),
+                web("motion.html", "wand.and.stars", "استوديو الموشن", ST.red),
+                web("cinema-admin.html", "popcorn.fill", "سينما دورلي", cyan),
+                web("/dawwir/admin.html", "play.square.stack.fill", "لوحة دوّر", ST.violet),
+        ]
+        let g3: [ToolItem] = [
+                t("watch", "eye.fill", "يُشاهَد الآن", ST.green, WatchingView()),
+                t("top", "flame.fill", "الأكثر مشاهدة", ST.am2, TopView(items: jarr(s, "topTitles"))),
+                web("stats.html", "chart.xyaxis.line", "الإحصاءات", cyan),
+                web("users.html", "person.3.fill", "المستخدمون", ST.blue),
+        ]
+        let g4: [ToolItem] = [
+                t("prov", "antenna.radiowaves.left.and.right", "المزوّدون", ST.blue, ProvidersView()),
+                t("tv", "sportscourt.fill", "قنوات الرياضة", ST.am, TVSportsView()),
+                t("health", "heart.text.square.fill", "صحّة النظام", ST.green, HealthView()),
+                web("live-admin.html", "tv.fill", "إدارة المباشر", ST.red),
+                web("scout.html", "magnifyingglass.circle.fill", "فحص المزوّدين", cyan),
+                web("compare.html", "scalemass.fill", "مقارنة المزوّدين", ST.green),
+                web("trials.html", "testtube.2", "مزوّدون تجريبيّون", ST.red),
+                web("apanel.html", "a.square.fill", "مزوّد أ", ST.blue),
+        ]
+        let g5: [ToolItem] = [
+                t("ops", "wrench.and.screwdriver.fill", "صيانة وتشغيل", ST.am, OpsView()),
+                web("panel.html", "rectangle.3.group.fill", "اللوحة الكاملة", ST.violet),
+        ]
+        return [("الدعم والمحادثات", g0), ("التواصل والإعلانات", g1), ("المحتوى", g2), ("المشاهدون", g3), ("المزوّدون والبثّ", g4), ("التشغيل", g5)]
+    }
+}
+
+struct ToolTile: View {
+    let t: ToolItem
+    var body: some View {
+        NavigationLink(destination: t.dest) {
+            VStack(spacing: 8) {
+                Image(systemName: t.icon).font(.system(size: 19, weight: .semibold)).foregroundStyle(Color.white)
+                    .frame(width: 46, height: 46).background(t.tint.gradient, in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(alignment: .topTrailing) {
+                        if t.badge > 0 {
+                            Text("\(t.badge)").font(.system(size: 11, weight: .heavy)).foregroundStyle(Color.white)
+                                .padding(.horizontal, 5).frame(minWidth: 20, minHeight: 20).background(ST.red, in: Capsule()).offset(x: 8, y: -8)
+                        }
+                    }
+                Text(t.name).font(.cairo(12, .bold)).foregroundStyle(Color.white).lineLimit(2).multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity).frame(height: 34, alignment: .top)
+            }
+            .padding(.top, 14).padding(.bottom, 8).padding(.horizontal, 4)
+            .frame(maxWidth: .infinity)
+            .background(ST.s1, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(white: 1, opacity: 0.07)))
+            .overlay(alignment: .topLeading) {
+                if t.web { Image(systemName: "globe").font(.system(size: 9, weight: .bold)).foregroundStyle(ST.tx3).padding(7) }
+            }
+            .contentShape(Rectangle())
         }.buttonStyle(.plain)
     }
 }
