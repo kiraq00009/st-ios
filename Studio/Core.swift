@@ -1,23 +1,75 @@
 import SwiftUI
 import Security
 
-/// ألوان ستوديو (نفس هويّة دورلي)
+/// ألوان ستوديو = هويّة دورلي الجديدة (رمّانيّ، نفس :root بالموقع)
 enum ST {
-    static let bg = Color(red: 4/255, green: 7/255, blue: 14/255)
-    static let s1 = Color(red: 11/255, green: 17/255, blue: 28/255)
-    static let s2 = Color(red: 19/255, green: 27/255, blue: 42/255)
-    static let tx2 = Color(white: 1, opacity: 0.72), tx3 = Color(white: 1, opacity: 0.46)
-    static let am = Color(red: 1, green: 172/255, blue: 45/255)
-    static let am2 = Color(red: 1, green: 0.48, blue: 0)
-    static let onAm = Color(red: 23/255, green: 16/255, blue: 9/255)
-    static let red = Color(red: 229/255, green: 32/255, blue: 46/255)
-    static let green = Color(red: 49/255, green: 208/255, blue: 122/255)
-    static let blue = Color(red: 0.32, green: 0.6, blue: 1)
-    static let violet = Color(red: 0.58, green: 0.45, blue: 1)
+    static let bg = Color(hex: 0x121011)
+    static let s1 = Color(hex: 0x1C1819)
+    static let s2 = Color(hex: 0x262122)
+    static let line = Color(hex: 0x2E2829)
+    static let tx = Color(hex: 0xF3ECE2)
+    static let tx2 = Color(hex: 0xA89F98), tx3 = Color(hex: 0x857C76)
+    static let am = Color(hex: 0xE2445C)
+    static let am2 = Color(hex: 0xF06A7E)
+    static let onAm = Color(hex: 0xFFF5F2)
+    static let red = Color(hex: 0xFF5A5F)
+    static let green = Color(hex: 0x3DDC84)
+    static let blue = Color(hex: 0x5B9BFF)
+    static let violet = Color(hex: 0x9B7BFF)
+    static let gold = Color(hex: 0xF5B83D)
+    static let grad = LinearGradient(colors: [Color(hex: 0xF06A7E), Color(hex: 0xE2445C), Color(hex: 0xC93652)], startPoint: .topLeading, endPoint: .bottomTrailing)
+}
+
+extension Color {
+    init(hex: UInt32, alpha: Double = 1) {
+        self.init(.sRGB, red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255, opacity: alpha)
+    }
 }
 
 extension Font {
-    static func cairo(_ size: CGFloat, _ w: Font.Weight = .regular) -> Font { .custom("Cairo", size: size).weight(w) }
+    /// خطّ الموقع: IBM Plex Sans Arabic (الاسم «cairo» باقٍ كاسم مستعار)
+    static func cairo(_ size: CGFloat, _ w: Font.Weight = .regular) -> Font { .custom(STFont.name(w), size: size) }
+}
+
+enum STFont {
+    static func name(_ w: Font.Weight) -> String {
+        switch w {
+        case .heavy, .black, .bold: return "IBMPlexSansArabic-Bold"
+        case .semibold: return "IBMPlexSansArabic-SemiBold"
+        case .medium: return "IBMPlexSansArabic-Medium"
+        default: return "IBMPlexSansArabic-Regular"
+        }
+    }
+    static func ui(_ size: CGFloat) -> UIFont { UIFont(name: "IBMPlexSansArabic-Bold", size: size) ?? .boldSystemFont(ofSize: size) }
+}
+
+/// لوغو دورلي (نفس svg.mk بالموقع، مربّع ٤٨)
+struct DWPoly: Shape {
+    let pts: [CGPoint]
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        let s = min(r.width, r.height) / 48, ox = r.midX - 24 * s, oy = r.midY - 24 * s
+        for (i, q) in pts.enumerated() {
+            let c = CGPoint(x: ox + q.x * s, y: oy + q.y * s)
+            if i == 0 { p.move(to: c) } else { p.addLine(to: c) }
+        }
+        p.closeSubpath(); return p
+    }
+}
+struct DWMark: View {
+    var body: some View {
+        ZStack {
+            DWPoly(pts: [CGPoint(x: 21, y: 5), CGPoint(x: 31, y: 5), CGPoint(x: 31, y: 14), CGPoint(x: 16, y: 14)]).fill(Color(hex: 0xB8304B))
+            DWPoly(pts: [CGPoint(x: 31, y: 33), CGPoint(x: 40, y: 33), CGPoint(x: 40, y: 43), CGPoint(x: 5, y: 43), CGPoint(x: 11, y: 33)])
+                .fill(LinearGradient(colors: [Color(hex: 0xC93652), Color(hex: 0x9C2441)], startPoint: .leading, endPoint: .trailing))
+            DWPoly(pts: [CGPoint(x: 30, y: 5), CGPoint(x: 40, y: 5), CGPoint(x: 40, y: 43), CGPoint(x: 30, y: 43)])
+                .fill(LinearGradient(stops: [.init(color: Color(hex: 0xFF8D9E), location: 0), .init(color: Color(hex: 0xE2445C), location: 0.5), .init(color: Color(hex: 0xA22743), location: 1)], startPoint: .top, endPoint: .bottom))
+            DWPoly(pts: [CGPoint(x: 19, y: 16.5), CGPoint(x: 25.5, y: 23), CGPoint(x: 19, y: 29.5), CGPoint(x: 12.5, y: 23)])
+                .fill(LinearGradient(colors: [Color(hex: 0xFFF8F0), Color(hex: 0xE4CDB6)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .environment(\.layoutDirection, .leftToRight)
+    }
 }
 
 typealias J = [String: Any]
@@ -59,7 +111,7 @@ enum DW {
     static let session: URLSession = {
         let c = URLSessionConfiguration.default
         c.timeoutIntervalForRequest = 25; c.requestCachePolicy = .reloadIgnoringLocalCacheData
-        c.httpAdditionalHeaders = ["User-Agent": "Dawwirli-Studio/2.0"]
+        c.httpAdditionalHeaders = ["User-Agent": "Dawwirli-Studio/2.1"]
         return URLSession(configuration: c)
     }()
     static func enc(_ s: String) -> String { s.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? s }
@@ -131,7 +183,7 @@ struct Tile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if !icon.isEmpty { Image(systemName: icon).font(.system(size: 14, weight: .bold)).foregroundStyle(tint) }
-            Text(value).font(.system(size: 24, weight: .heavy, design: .rounded)).foregroundStyle(Color.white).lineLimit(1).minimumScaleFactor(0.6)
+            Text(value).font(.system(size: 24, weight: .heavy, design: .rounded)).foregroundStyle(ST.tx).lineLimit(1).minimumScaleFactor(0.6)
             Text(label).font(.cairo(11.5)).foregroundStyle(ST.tx3).lineLimit(1)
         }
         .padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -162,7 +214,7 @@ struct STBackground: View {
     var body: some View {
         ZStack {
             ST.bg
-            RadialGradient(colors: [Color(red: 0.09, green: 0.13, blue: 0.27).opacity(0.75), Color.clear], center: .top, startRadius: 0, endRadius: 520)
+            RadialGradient(colors: [ST.am.opacity(0.10), Color.clear], center: .top, startRadius: 0, endRadius: 520)
         }.ignoresSafeArea()
     }
 }

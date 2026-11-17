@@ -15,8 +15,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: watch.dawwirli.studio
         PRODUCT_NAME: Studio
-        MARKETING_VERSION: "2.0"
-        CURRENT_PROJECT_VERSION: "3"
+        MARKETING_VERSION: "2.1"
+        CURRENT_PROJECT_VERSION: "4"
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -31,7 +31,7 @@ targets:
     info:
       path: Studio/Info.plist
       properties:
-        UIAppFonts: [Cairo.ttf]
+        UIAppFonts: [plex_r.ttf, plex_m.ttf, plex_sb.ttf, plex_b.ttf]
         UIUserInterfaceStyle: Dark
         CFBundleDevelopmentRegion: ar
         UILaunchScreen:

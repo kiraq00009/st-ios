@@ -6,8 +6,8 @@ struct StudioApp: App {
     @StateObject private var auth = Auth()
     init() {
         let nb = UINavigationBarAppearance(); nb.configureWithTransparentBackground()
-        nb.titleTextAttributes = [.foregroundColor: UIColor.white, .font: UIFont(name: "Cairo-Bold", size: 17) ?? .boldSystemFont(ofSize: 17)]
-        nb.largeTitleTextAttributes = [.foregroundColor: UIColor.white, .font: UIFont(name: "Cairo-ExtraBold", size: 30) ?? .boldSystemFont(ofSize: 30)]
+        nb.titleTextAttributes = [.foregroundColor: UIColor(ST.tx), .font: STFont.ui(17)]
+        nb.largeTitleTextAttributes = [.foregroundColor: UIColor(ST.tx), .font: STFont.ui(30)]
         UINavigationBar.appearance().standardAppearance = nb; UINavigationBar.appearance().scrollEdgeAppearance = nb
         UINavigationBar.appearance().tintColor = UIColor(ST.am)
     }
@@ -45,14 +45,15 @@ struct LoginView: View {
             STBackground()
             VStack(spacing: 18) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [Color(red: 1, green: 0.72, blue: 0.3), ST.am2], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 84, height: 84).shadow(color: ST.am2.opacity(0.5), radius: 20, y: 8)
-                    Image(systemName: "square.grid.2x2.fill").font(.system(size: 34, weight: .bold)).foregroundStyle(ST.onAm)
+                    RoundedRectangle(cornerRadius: 24).fill(ST.s1).frame(width: 88, height: 88)
+                        .overlay(RoundedRectangle(cornerRadius: 24).stroke(ST.am.opacity(0.35)))
+                        .shadow(color: ST.am.opacity(0.35), radius: 22, y: 8)
+                    DWMark().frame(width: 56, height: 56)
                 }
-                Text("Studio").font(.system(size: 34, weight: .black, design: .rounded)).foregroundStyle(Color.white)
+                Text("Studio").font(.system(size: 34, weight: .bold)).foregroundStyle(ST.tx)
                 Text("لوحة تحكّم مشاريعك").font(.cairo(15)).foregroundStyle(ST.tx2)
                 SecureField("", text: $pw, prompt: Text("كلمة سرّ المدير").foregroundColor(ST.tx3))
-                    .font(.system(size: 16)).foregroundStyle(Color.white).multilineTextAlignment(.center)
+                    .font(.system(size: 16)).foregroundStyle(ST.tx).multilineTextAlignment(.center)
                     .padding(14).background(ST.s2, in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(bad ? ST.red : Color(white: 1, opacity: 0.1)))
                     .padding(.top, 16).submitLabel(.go).onSubmit(go)
@@ -86,20 +87,20 @@ struct ProjectsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("مشاريعي").font(.cairo(30, .heavy)).foregroundStyle(Color.white).padding(.top, 6)
+                Text("مشاريعي").font(.cairo(30, .heavy)).foregroundStyle(ST.tx).padding(.top, 6)
                 Text(greeting()).font(.cairo(14)).foregroundStyle(ST.tx3).padding(.top, -12)
 
                 // دورلي — البطاقة الكبيرة الحيّة
                 NavigationLink { DawwirliHome() } label: { DawwirliCard() }.buttonStyle(.plain)
 
-                Text("مشاريع ثانية").font(.cairo(17, .heavy)).foregroundStyle(Color.white).padding(.top, 8)
+                Text("مشاريع ثانية").font(.cairo(17, .heavy)).foregroundStyle(ST.tx).padding(.top, 8)
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                     ForEach(others) { p in
                         Link(destination: URL(string: p.url)!) {
                             VStack(alignment: .leading, spacing: 8) {
-                                Image(systemName: p.icon).font(.system(size: 18, weight: .bold)).foregroundStyle(Color.white)
+                                Image(systemName: p.icon).font(.system(size: 18, weight: .bold)).foregroundStyle(ST.tx)
                                     .frame(width: 40, height: 40).background(p.tint.gradient, in: RoundedRectangle(cornerRadius: 12))
-                                Text(p.name).font(.cairo(15, .heavy)).foregroundStyle(Color.white)
+                                Text(p.name).font(.cairo(15, .heavy)).foregroundStyle(ST.tx)
                                 Text(p.sub).font(.cairo(11.5)).foregroundStyle(ST.tx3)
                                 Pill(text: "لوحته قريبًا — يفتح الموقع", tint: ST.tx3)
                             }
@@ -142,11 +143,12 @@ struct DawwirliCard: View {
         let u = jobj(s, "usage"), vod = jobj(s, "vod"), live = jobj(s, "live"), disk = jobj(s, "disk")
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 14).fill(LinearGradient(colors: [Color(red: 1, green: 0.72, blue: 0.3), ST.am2], startPoint: .topLeading, endPoint: .bottomTrailing))
+                RoundedRectangle(cornerRadius: 14).fill(ST.bg)
                     .frame(width: 48, height: 48)
-                    .overlay(Text("D").font(.system(size: 24, weight: .black, design: .rounded)).foregroundStyle(ST.onAm))
+                    .overlay(DWMark().frame(width: 32, height: 32))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(ST.am.opacity(0.3)))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Dawwirli").font(.system(size: 22, weight: .heavy, design: .rounded)).foregroundStyle(Color.white)
+                    Text("دورلي").font(.cairo(22, .bold)).foregroundStyle(ST.tx)
                     HStack(spacing: 6) {
                         Circle().fill(s.isEmpty ? ST.tx3 : ST.green).frame(width: 7, height: 7)
                         Text(s.isEmpty ? "جارِ الاتّصال…" : (s["maintenance"] as? Bool == true ? "وضع الصيانة" : "شغّال")).font(.cairo(12)).foregroundStyle(ST.tx2)
@@ -154,7 +156,7 @@ struct DawwirliCard: View {
                 }
                 Spacer()
                 if chatUnread + reqUnread > 0 {
-                    Text("\(chatUnread + reqUnread)").font(.system(size: 13, weight: .heavy)).foregroundStyle(Color.white)
+                    Text("\(chatUnread + reqUnread)").font(.system(size: 13, weight: .heavy)).foregroundStyle(ST.tx)
                         .frame(minWidth: 26, minHeight: 26).background(ST.red, in: Capsule())
                 }
                 Image(systemName: "chevron.left").foregroundStyle(ST.tx3)

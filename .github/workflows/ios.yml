@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     env:
       HAS_P12: ${{ secrets.APPLE_P12_BASE64 != '' }}
     steps:

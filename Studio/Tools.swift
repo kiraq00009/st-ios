@@ -30,10 +30,10 @@ struct Head: View {
     let icon: String; let title: String; var sub: String = ""; var tint: Color = ST.am
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.white)
+            Image(systemName: icon).font(.system(size: 15, weight: .semibold)).foregroundStyle(ST.tx)
                 .frame(width: 36, height: 36).background(tint.gradient, in: RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 1) {
-                Text(title).font(.cairo(15, .bold)).foregroundStyle(Color.white)
+                Text(title).font(.cairo(15, .bold)).foregroundStyle(ST.tx)
                 if !sub.isEmpty { Text(sub).font(.cairo(11.5)).foregroundStyle(ST.tx3) }
             }
             Spacer(minLength: 0)
@@ -52,7 +52,7 @@ struct Field: View {
     let hint: String; @Binding var text: String; var lines = 1
     var body: some View {
         TextField("", text: $text, prompt: Text(hint).foregroundColor(ST.tx3), axis: .vertical)
-            .lineLimit(lines...max(lines, 4)).font(.cairo(14)).foregroundStyle(Color.white)
+            .lineLimit(lines...max(lines, 4)).font(.cairo(14)).foregroundStyle(ST.tx)
             .padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
     }
 }
@@ -135,7 +135,7 @@ struct AdsView: View {
                     Poster(url: DW.img(img), w: 54)
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 6) { Pill(text: st.0, tint: st.1); if !jstr(it, "badge").isEmpty { Pill(text: jstr(it, "badge"), tint: ST.am) } }
-                        Text(jstr(it, "title").isEmpty ? "بلا عنوان" : jstr(it, "title")).font(.cairo(15, .heavy)).foregroundStyle(Color.white).lineLimit(2)
+                        Text(jstr(it, "title").isEmpty ? "بلا عنوان" : jstr(it, "title")).font(.cairo(15, .heavy)).foregroundStyle(ST.tx).lineLimit(2)
                         if !jstr(it, "text").isEmpty { Text(jstr(it, "text")).font(.cairo(12.5)).foregroundStyle(ST.tx2).lineLimit(3) }
                     }
                     Spacer(minLength: 0)
@@ -202,7 +202,7 @@ struct AdEditor: View {
                             if let t = target {
                                 HStack(spacing: 10) {
                                     Poster(url: DW.img(jstr(t, "poster")), w: 40)
-                                    Text(DW.clean(jstr(t, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(2)
+                                    Text(DW.clean(jstr(t, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(2)
                                     Spacer()
                                     ActBtn(title: "غيّره", tint: ST.tx2) { target = nil }
                                 }
@@ -215,7 +215,7 @@ struct AdEditor: View {
                                     Button { pick(x) } label: {
                                         HStack(spacing: 10) {
                                             Poster(url: DW.img(jstr(x, "icon").isEmpty ? jstr(x, "poster") : jstr(x, "icon")), w: 34)
-                                            Text(DW.clean(jstr(x, "name"))).font(.cairo(13.5, .semibold)).foregroundStyle(Color.white).lineLimit(1)
+                                            Text(DW.clean(jstr(x, "name"))).font(.cairo(13.5, .semibold)).foregroundStyle(ST.tx).lineLimit(1)
                                             Spacer()
                                             Pill(text: jstr(x, "_kind") == "series" ? "مسلسل" : "فلم", tint: ST.tx3)
                                         }.contentShape(Rectangle())
@@ -227,9 +227,9 @@ struct AdEditor: View {
                     Card {
                         VStack(alignment: .leading, spacing: 10) {
                             Head(icon: "calendar", title: "المدّة", tint: ST.violet)
-                            Stepper(value: $days, in: 1...60) { Text("يبقى \(days) يوم").font(.cairo(14, .bold)).foregroundStyle(Color.white) }
+                            Stepper(value: $days, in: 1...60) { Text("يبقى \(days) يوم").font(.cairo(14, .bold)).foregroundStyle(ST.tx) }
                             if kind == .pop {
-                                Stepper(value: $gap, in: 0...14) { Text(gap == 0 ? "يطلع بكلّ دخول" : "يطلع للشخص مرّة كلّ \(gap) يوم").font(.cairo(14, .bold)).foregroundStyle(Color.white) }
+                                Stepper(value: $gap, in: 0...14) { Text(gap == 0 ? "يطلع بكلّ دخول" : "يطلع للشخص مرّة كلّ \(gap) يوم").font(.cairo(14, .bold)).foregroundStyle(ST.tx) }
                             }
                         }
                     }
@@ -295,7 +295,7 @@ struct DailyView: View {
                         ActBtn(title: jbool(cfg, "auto") ? "طفّيه" : "شغّله", tint: ST.tx2) { setCfg(auto: !jbool(cfg, "auto"), n: max(1, jint(cfg, "n"))) }
                     }
                     HStack {
-                        Text("عدد الأعمال باليوم: \(max(1, jint(cfg, "n")))").font(.cairo(13.5, .bold)).foregroundStyle(Color.white)
+                        Text("عدد الأعمال باليوم: \(max(1, jint(cfg, "n")))").font(.cairo(13.5, .bold)).foregroundStyle(ST.tx)
                         Spacer()
                         ActBtn(title: "−", tint: ST.tx2, disabled: jint(cfg, "n") <= 1) { setCfg(auto: jbool(cfg, "auto"), n: jint(cfg, "n") - 1) }
                         ActBtn(title: "+", tint: ST.tx2) { setCfg(auto: jbool(cfg, "auto"), n: jint(cfg, "n") + 1) }
@@ -312,7 +312,7 @@ struct DailyView: View {
                             Pill(text: jstr(it, "kind") == "series" ? "مسلسل" : "فلم", tint: ST.blue)
                             if !jbool(it, "alive") { Pill(text: "ما يشتغل", tint: ST.red) }
                         }
-                        Text(DW.clean(jstr(it, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(1)
+                        Text(DW.clean(jstr(it, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(1)
                         Text(jstr(it, "why")).font(.cairo(11)).foregroundStyle(ST.tx3).lineLimit(2)
                         Text("شافوه \(jint(st, "seen")) · شغّلوه \(jint(st, "play")) · تجاهلوه \(jint(st, "hide"))").font(.cairo(11)).foregroundStyle(ST.tx3)
                     }
@@ -379,7 +379,7 @@ struct TVSportsView: View {
                         AsyncImage(url: DW.img(jstr(c, "logo"))) { ph in if case .success(let im) = ph { im.resizable().scaledToFit() } else { ST.s2 } }
                             .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 10))
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(DW.clean(jstr(c, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(1)
+                            Text(DW.clean(jstr(c, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(1)
                             HStack(spacing: 6) {
                                 Pill(text: jbool(st, "dead") ? "واقفة" : "شغّالة", tint: jbool(st, "dead") ? ST.red : ST.green)
                                 if jint(st, "viewers") > 0 { Pill(text: "\(jint(st, "viewers")) يشوفون", tint: ST.am) }
@@ -437,7 +437,7 @@ struct ProvidersView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 8) {
                             Circle().fill(ok ? ST.green : ST.red).frame(width: 9, height: 9)
-                            Text(jstr(p, "key")).font(.cairo(15, .heavy)).foregroundStyle(Color.white)
+                            Text(jstr(p, "key")).font(.cairo(15, .heavy)).foregroundStyle(ST.tx)
                             Spacer()
                             Pill(text: act >= mx ? "مشغول \(act)/\(mx)" : "فاضي \(act)/\(mx)", tint: act >= mx ? ST.red : ST.green)
                         }
@@ -455,7 +455,7 @@ struct ProvidersView: View {
                     ForEach(Array(test.enumerated()), id: \.offset) { _, t in
                         let http = jint(t, "serverHttp"), good = jbool(t, "apiOk") && (200..<400).contains(http)
                         VStack(alignment: .leading, spacing: 4) {
-                            HStack { Text(jstr(t, "key")).font(.cairo(14, .bold)).foregroundStyle(Color.white); Spacer(); Pill(text: good ? "يشتغل" : "بيه مشكلة", tint: good ? ST.green : ST.red) }
+                            HStack { Text(jstr(t, "key")).font(.cairo(14, .bold)).foregroundStyle(ST.tx); Spacer(); Pill(text: good ? "يشتغل" : "بيه مشكلة", tint: good ? ST.green : ST.red) }
                             KV(k: "القائمة", v: jbool(t, "apiOk") ? "\(jint(t, "catalog")) فيلم" : "ما تفتح", tint: jbool(t, "apiOk") ? Color.white : ST.red)
                             KV(k: "تشغيل العيّنة", v: http == 0 ? "ما ردّ" : "HTTP \(http)", tint: (200..<400).contains(http) ? ST.green : ST.red)
                         }
@@ -647,7 +647,7 @@ struct OpsView: View {
     }
     private func opRow(_ t: String, _ subt: String, _ op: Op) -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: 1) { Text(t).font(.cairo(14, .bold)).foregroundStyle(Color.white); Text(subt).font(.cairo(11.5)).foregroundStyle(ST.tx3) }
+            VStack(alignment: .leading, spacing: 1) { Text(t).font(.cairo(14, .bold)).foregroundStyle(ST.tx); Text(subt).font(.cairo(11.5)).foregroundStyle(ST.tx3) }
             Spacer()
             ActBtn(title: busy == op.rawValue ? "دا يشتغل…" : "أعد البناء", tint: ST.am, disabled: !busy.isEmpty) { ask = op }
         }
@@ -689,7 +689,7 @@ struct NewestView: View {
                 HStack(spacing: 12) {
                     Poster(url: DW.img(jstr(x, "poster")), w: 44)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(1)
+                        Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(1)
                         Text(jstr(x, "cat")).font(.cairo(11)).foregroundStyle(ST.tx3).lineLimit(1)
                     }
                     Spacer(minLength: 0)
@@ -720,7 +720,7 @@ struct ReactsView: View {
                 HStack(spacing: 10) {
                     Text(jstr(r, "e")).font(.system(size: 24))
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(jstr(r, "name").isEmpty ? jstr(r, "key") : jstr(r, "name")).font(.cairo(13.5, .bold)).foregroundStyle(Color.white).lineLimit(1)
+                        Text(jstr(r, "name").isEmpty ? jstr(r, "key") : jstr(r, "name")).font(.cairo(13.5, .bold)).foregroundStyle(ST.tx).lineLimit(1)
                         if !jstr(r, "x").isEmpty { Text(jstr(r, "x")).font(.cairo(12.5)).foregroundStyle(ST.tx2).lineLimit(3) }
                         Text(ago(jdbl(r, "at"))).font(.cairo(11)).foregroundStyle(ST.tx3)
                     }
@@ -766,7 +766,7 @@ struct SupWatchView: View {
                         HStack(spacing: 12) {
                             Text(String(jstr(w, "name").first ?? "؟")).font(.system(size: 16, weight: .heavy)).foregroundStyle(ST.onAm).frame(width: 40, height: 40).background(ST.am.gradient, in: Circle())
                             VStack(alignment: .leading, spacing: 2) {
-                                HStack { Text(jstr(w, "name").isEmpty ? "زائر" : jstr(w, "name")).font(.cairo(14, .bold)).foregroundStyle(Color.white); Spacer(); Text("من " + jstr(w, "ago")).font(.cairo(11)).foregroundStyle(ST.tx3) }
+                                HStack { Text(jstr(w, "name").isEmpty ? "زائر" : jstr(w, "name")).font(.cairo(14, .bold)).foregroundStyle(ST.tx); Spacer(); Text("من " + jstr(w, "ago")).font(.cairo(11)).foregroundStyle(ST.tx3) }
                                 Text(jstr(w, "text")).font(.cairo(12.5)).foregroundStyle(ST.tx2).lineLimit(2).multilineTextAlignment(.leading)
                             }
                             Image(systemName: "chevron.left").font(.system(size: 12, weight: .bold)).foregroundStyle(ST.tx3)
@@ -778,7 +778,7 @@ struct SupWatchView: View {
                 ForEach(Array(misses.enumerated()), id: \.offset) { _, m in
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(jstr(m, "q")).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(2)
+                            Text(jstr(m, "q")).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(2)
                             Text("\(jint(m, "n")) مرّة · \(jint(m, "devs")) جهاز · من " + jstr(m, "ago")).font(.cairo(11.5)).foregroundStyle(ST.tx3)
                         }
                         Spacer()
@@ -789,7 +789,7 @@ struct SupWatchView: View {
             } else {
                 ForEach(Array(fails.enumerated()), id: \.offset) { _, f in
                     VStack(alignment: .leading, spacing: 4) {
-                        HStack { Text(DW.clean(jstr(f, "title"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(1); Spacer(); Pill(text: "\(jint(f, "n")) بلاغ", tint: ST.red) }
+                        HStack { Text(DW.clean(jstr(f, "title"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(1); Spacer(); Pill(text: "\(jint(f, "n")) بلاغ", tint: ST.red) }
                         if !jstr(f, "hint").isEmpty { Text(jstr(f, "hint")).font(.cairo(12.5)).foregroundStyle(ST.am) }
                         Text((jobj(f, "os").map { "\($0.key) \(($0.value as? NSNumber)?.intValue ?? 0)" }).sorted().joined(separator: " · ")).font(.cairo(11.5)).foregroundStyle(ST.tx3)
                     }

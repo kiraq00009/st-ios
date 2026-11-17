@@ -36,7 +36,7 @@ struct HomeBody: View {
                 waitingCard
                 ForEach(Array(groups.enumerated()), id: \.offset) { _, g in
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(g.0).font(.cairo(16, .heavy)).foregroundStyle(Color.white)
+                        Text(g.0).font(.cairo(16, .heavy)).foregroundStyle(ST.tx)
                         LazyVGrid(columns: cols3, spacing: 10) { ForEach(g.1) { t in ToolTile(t: t) } }
                     }
                 }
@@ -55,7 +55,7 @@ struct HomeBody: View {
                 Image(systemName: maint ? "wrench.and.screwdriver.fill" : "checkmark.seal.fill").font(.system(size: 19, weight: .bold)).foregroundStyle(maint ? ST.red : ST.green)
             }
             VStack(alignment: .leading, spacing: 1) {
-                Text(maint ? "الموقع بوضع الصيانة" : "الموقع شغّال").font(.cairo(17, .heavy)).foregroundStyle(Color.white)
+                Text(maint ? "الموقع بوضع الصيانة" : "الموقع شغّال").font(.cairo(17, .heavy)).foregroundStyle(ST.tx)
                 Text("شغّال من " + (up >= 1440 ? "\(up / 1440) يوم" : (up >= 60 ? "\(up / 60) ساعة" : "\(up) دقيقة")) + " · الحمل " + String(format: "%.1f", jdbl(wd, "load")))
                     .font(.cairo(12)).foregroundStyle(ST.tx3)
             }
@@ -98,7 +98,7 @@ struct HomeBody: View {
                             HStack(spacing: 10) {
                                 Text(String(jstr(x, "name").first ?? "؟")).font(.system(size: 14, weight: .heavy)).foregroundStyle(ST.onAm).frame(width: 34, height: 34).background(ST.am.gradient, in: Circle())
                                 VStack(alignment: .leading, spacing: 1) {
-                                    Text(jstr(x, "name").isEmpty ? "زائر" : jstr(x, "name")).font(.cairo(13, .bold)).foregroundStyle(Color.white)
+                                    Text(jstr(x, "name").isEmpty ? "زائر" : jstr(x, "name")).font(.cairo(13, .bold)).foregroundStyle(ST.tx)
                                     Text(jstr(x, "text")).font(.cairo(12)).foregroundStyle(ST.tx2).lineLimit(1)
                                 }
                                 Spacer(minLength: 0)
@@ -151,6 +151,7 @@ struct HomeBody: View {
                 t("reacts", "face.smiling.fill", "ردود الفعل", cyan, ReactsView()),
         ]
         let g2: [ToolItem] = [
+                t("catalog", "square.stack.3d.up.fill", "كلّ المزوّدين", ST.am, CatalogView()),
                 t("new", "sparkle", "جديد دورلي", ST.violet, NewestView()),
                 t("daily", "target", "ترشيح اليوم", ST.am, DailyView()),
                 t("hide", "eye.slash.fill", "إخفاء عمل", pink, HideView()),
@@ -190,15 +191,15 @@ struct ToolTile: View {
     var body: some View {
         NavigationLink(destination: t.dest) {
             VStack(spacing: 8) {
-                Image(systemName: t.icon).font(.system(size: 19, weight: .semibold)).foregroundStyle(Color.white)
+                Image(systemName: t.icon).font(.system(size: 19, weight: .semibold)).foregroundStyle(ST.tx)
                     .frame(width: 46, height: 46).background(t.tint.gradient, in: RoundedRectangle(cornerRadius: 14))
                     .overlay(alignment: .topTrailing) {
                         if t.badge > 0 {
-                            Text("\(t.badge)").font(.system(size: 11, weight: .heavy)).foregroundStyle(Color.white)
+                            Text("\(t.badge)").font(.system(size: 11, weight: .heavy)).foregroundStyle(ST.tx)
                                 .padding(.horizontal, 5).frame(minWidth: 20, minHeight: 20).background(ST.red, in: Capsule()).offset(x: 8, y: -8)
                         }
                     }
-                Text(t.name).font(.cairo(12, .bold)).foregroundStyle(Color.white).lineLimit(2).multilineTextAlignment(.center)
+                Text(t.name).font(.cairo(12, .bold)).foregroundStyle(ST.tx).lineLimit(2).multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity).frame(height: 34, alignment: .top)
             }
             .padding(.top, 14).padding(.bottom, 8).padding(.horizontal, 4)
@@ -228,7 +229,7 @@ struct ChatList: View {
                                     .frame(width: 42, height: 42).background(ST.am.gradient, in: Circle())
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack {
-                                        Text(jstr(t, "name").isEmpty ? "زائر" : jstr(t, "name")).font(.cairo(14.5, .bold)).foregroundStyle(Color.white)
+                                        Text(jstr(t, "name").isEmpty ? "زائر" : jstr(t, "name")).font(.cairo(14.5, .bold)).foregroundStyle(ST.tx)
                                         if jstr(t, "contact") == "iPhone" { Pill(text: "آيفون", tint: ST.blue) }
                                         Spacer()
                                         Text(ago((t["at"] as? NSNumber)?.doubleValue ?? 0)).font(.cairo(11)).foregroundStyle(ST.tx3)
@@ -284,7 +285,7 @@ struct ChatThread: View {
             }
             HStack(spacing: 8) {
                 TextField("", text: $text, prompt: Text("اكتب ردّك…").foregroundColor(ST.tx3), axis: .vertical)
-                    .lineLimit(1...5).font(.cairo(14.5)).foregroundStyle(Color.white)
+                    .lineLimit(1...5).font(.cairo(14.5)).foregroundStyle(ST.tx)
                     .padding(.horizontal, 14).padding(.vertical, 11).background(ST.s2, in: RoundedRectangle(cornerRadius: 20))
                 Button(action: reply) {
                     Image(systemName: "arrow.up").font(.system(size: 16, weight: .bold)).foregroundStyle(ST.onAm).frame(width: 44, height: 44)
@@ -343,7 +344,7 @@ struct RequestsView: View {
                                 HStack(alignment: .top, spacing: 12) {
                                     Poster(url: DW.img(jstr(it, "poster")), w: 54)
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(jstr(it, "title")).font(.cairo(15, .bold)).foregroundStyle(Color.white).lineLimit(2)
+                                        Text(jstr(it, "title")).font(.cairo(15, .bold)).foregroundStyle(ST.tx).lineLimit(2)
                                         HStack(spacing: 6) {
                                             Pill(text: jstr(it, "kind") == "series" || jstr(it, "kind") == "tv" ? "مسلسل" : "فلم", tint: ST.blue)
                                             if jint(it, "n") > 1 { Pill(text: "طلبه \(jint(it, "n")) أشخاص", tint: ST.am) }
@@ -378,9 +379,9 @@ struct RequestsView: View {
             }
             .sheet(isPresented: Binding(get: { replyTo != nil }, set: { if !$0 { replyTo = nil } })) {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("ردّ على: " + jstr(replyTo ?? [:], "title")).font(.cairo(16, .heavy)).foregroundStyle(Color.white)
+                    Text("ردّ على: " + jstr(replyTo ?? [:], "title")).font(.cairo(16, .heavy)).foregroundStyle(ST.tx)
                     TextField("", text: $replyText, prompt: Text("مثلًا: انضاف، تكدر تشوفه هسه 🎉").foregroundColor(ST.tx3), axis: .vertical)
-                        .lineLimit(3...6).font(.cairo(15)).foregroundStyle(Color.white).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 14))
+                        .lineLimit(3...6).font(.cairo(15)).foregroundStyle(ST.tx).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 14))
                     Button {
                         let at = jstr(replyTo ?? [:], "at"), t = replyText
                         Task { _ = try? await DW.post("/api/request/reply", ["at": NSNumber(value: Int64(at) ?? 0), "text": t]); replyTo = nil; toast = "انبعث الردّ ✓"; refresh() }
@@ -417,13 +418,13 @@ struct WatchingView: View {
                         Tile(value: "\(jint(n, "vodViewers"))", label: "يشوف أفلام/مسلسلات", icon: "film.fill", tint: ST.am)
                         Tile(value: "\(jint(jobj(w, "live"), "total"))", label: "بالمباشر", icon: "dot.radiowaves.left.and.right", tint: ST.red)
                     }
-                    Text("الأعمال").font(.cairo(16, .heavy)).foregroundStyle(Color.white).padding(.top, 4)
+                    Text("الأعمال").font(.cairo(16, .heavy)).foregroundStyle(ST.tx).padding(.top, 4)
                     if jarr(n, "vod").isEmpty { Text("ماكو أحد يشوف فلم هسه").font(.cairo(13)).foregroundStyle(ST.tx3) }
                     ForEach(Array(jarr(n, "vod").enumerated()), id: \.offset) { _, x in
                         HStack(spacing: 12) {
                             Poster(url: DW.img(jstr(x, "poster")))
                             VStack(alignment: .leading, spacing: 3) {
-                                Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(1)
+                                Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(1)
                                 Pill(text: jstr(x, "kind") == "series" ? "مسلسل" : "فلم", tint: ST.blue)
                             }
                             Spacer()
@@ -431,11 +432,11 @@ struct WatchingView: View {
                         }.padding(10).background(ST.s1, in: RoundedRectangle(cornerRadius: 14))
                     }
                     if !jarr(jobj(w, "live"), "chans").isEmpty {
-                        Text("القنوات").font(.cairo(16, .heavy)).foregroundStyle(Color.white).padding(.top, 4)
+                        Text("القنوات").font(.cairo(16, .heavy)).foregroundStyle(ST.tx).padding(.top, 4)
                         ForEach(Array(jarr(jobj(w, "live"), "chans").enumerated()), id: \.offset) { _, ch in
                             HStack {
                                 Circle().fill(ST.red).frame(width: 8, height: 8)
-                                Text(DW.clean(jstr(ch, "name").isEmpty ? jstr(ch, "id") : jstr(ch, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white)
+                                Text(DW.clean(jstr(ch, "name").isEmpty ? jstr(ch, "id") : jstr(ch, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx)
                                 Spacer()
                                 Label("\(max(jint(ch, "n"), jint(ch, "viewers")))", systemImage: "eye.fill").font(.system(size: 14, weight: .bold)).foregroundStyle(ST.red)
                             }.padding(12).background(ST.s1, in: RoundedRectangle(cornerRadius: 14))
@@ -466,7 +467,7 @@ struct BotStatsView: View {
                     }
                     Card {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("شنو يطلبون أكثر").font(.cairo(16, .heavy)).foregroundStyle(Color.white)
+                            Text("شنو يطلبون أكثر").font(.cairo(16, .heavy)).foregroundStyle(ST.tx)
                             let top = intents.compactMap { k, v in (v as? NSNumber).map { (k, $0.intValue) } }.sorted { $0.1 > $1.1 }.prefix(8)
                             let mx = max(1, top.first?.1 ?? 1)
                             ForEach(Array(top.enumerated()), id: \.offset) { _, e in
@@ -479,11 +480,11 @@ struct BotStatsView: View {
                             }
                         }
                     }
-                    Text("آخر المحادثات").font(.cairo(16, .heavy)).foregroundStyle(Color.white)
+                    Text("آخر المحادثات").font(.cairo(16, .heavy)).foregroundStyle(ST.tx)
                     ForEach(Array(jarr(d, "threads").prefix(25).enumerated()), id: \.offset) { _, t in
                         VStack(alignment: .leading, spacing: 3) {
                             HStack {
-                                Text(jstr(t, "name").isEmpty ? "زائر" : jstr(t, "name")).font(.cairo(13.5, .bold)).foregroundStyle(Color.white)
+                                Text(jstr(t, "name").isEmpty ? "زائر" : jstr(t, "name")).font(.cairo(13.5, .bold)).foregroundStyle(ST.tx)
                                 if jint(t, "miss") > 0 { Pill(text: "ما فهم \(jint(t, "miss"))", tint: ST.red) }
                                 Spacer()
                                 Text("\(jint(t, "n")) رسالة").font(.cairo(11)).foregroundStyle(ST.tx3)
@@ -522,7 +523,7 @@ struct FeedbackView: View {
                                     Spacer()
                                     Text(ago((f["at"] as? NSNumber)?.doubleValue ?? 0)).font(.cairo(11)).foregroundStyle(ST.tx3)
                                 }
-                                Text(jstr(f, "text")).font(.cairo(14)).foregroundStyle(Color.white)
+                                Text(jstr(f, "text")).font(.cairo(14)).foregroundStyle(ST.tx)
                                 if !jstr(f, "contact").isEmpty { Text("للتواصل: " + jstr(f, "contact")).font(.cairo(12)).foregroundStyle(ST.am) }
                             }
                         }
@@ -545,7 +546,7 @@ struct TopView: View {
                     HStack(spacing: 12) {
                         Text("\(i + 1)").font(.system(size: 22, weight: .black, design: .rounded)).foregroundStyle(i < 3 ? ST.am : ST.tx3).frame(width: 34)
                         Poster(url: DW.img(jstr(x, "poster")))
-                        Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(2)
+                        Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(2)
                         Spacer()
                         Label("\(jint(x, "plays"))", systemImage: "play.fill").font(.system(size: 13, weight: .bold)).foregroundStyle(ST.green)
                     }.padding(10).background(ST.s1, in: RoundedRectangle(cornerRadius: 14))

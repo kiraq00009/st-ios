@@ -30,7 +30,7 @@ struct ActionsView: View {
                         head("megaphone.fill", "إعلان الموقع", "شريط يطلع لكلّ الزوّار فوق الصفحة", ST.am)
                         HStack { Text("الحالة:").font(.cairo(12.5)).foregroundStyle(ST.tx3); Pill(text: (ann["active"] as? Bool) == true ? "ظاهر هسه" : "مخفي", tint: (ann["active"] as? Bool) == true ? ST.green : ST.tx3) }
                         TextField("", text: $annText, prompt: Text("مثلًا: مباراة الكلاسيكو الليلة 10 مساءً على قسم المباشر ⚽").foregroundColor(ST.tx3), axis: .vertical)
-                            .lineLimit(2...4).font(.cairo(14)).foregroundStyle(Color.white).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
+                            .lineLimit(2...4).font(.cairo(14)).foregroundStyle(ST.tx).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
                         HStack(spacing: 8) {
                             btn("انشر الإعلان", ST.am, disabled: annText.trimmingCharacters(in: .whitespaces).isEmpty) { ask = .announce(true) }
                             if (ann["active"] as? Bool) == true { btn("أخفيه", ST.tx2) { ask = .announce(false) } }
@@ -43,9 +43,9 @@ struct ActionsView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         head("bell.badge.fill", "إشعار لكلّ المشتركين", "يوصل لـ \(subs) جهاز مفعّل الإشعارات بالموقع", ST.blue)
                         TextField("", text: $pushTitle, prompt: Text("العنوان").foregroundColor(ST.tx3))
-                            .font(.cairo(14, .bold)).foregroundStyle(Color.white).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
+                            .font(.cairo(14, .bold)).foregroundStyle(ST.tx).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
                         TextField("", text: $pushBody, prompt: Text("نصّ الإشعار — مثلًا: نزلت الحلقة الجديدة من …").foregroundColor(ST.tx3), axis: .vertical)
-                            .lineLimit(2...4).font(.cairo(14)).foregroundStyle(Color.white).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
+                            .lineLimit(2...4).font(.cairo(14)).foregroundStyle(ST.tx).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
                         btn("ابعث الإشعار", ST.blue, disabled: pushBody.trimmingCharacters(in: .whitespaces).isEmpty) { ask = .push }
                     }
                 }
@@ -115,10 +115,10 @@ struct ActionsView: View {
     }
     private func head(_ ic: String, _ t: String, _ sub: String, _ c: Color) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: ic).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.white)
+            Image(systemName: ic).font(.system(size: 15, weight: .semibold)).foregroundStyle(ST.tx)
                 .frame(width: 36, height: 36).background(c.gradient, in: RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 1) {
-                Text(t).font(.cairo(15, .bold)).foregroundStyle(Color.white)
+                Text(t).font(.cairo(15, .bold)).foregroundStyle(ST.tx)
                 Text(sub).font(.cairo(11.5)).foregroundStyle(ST.tx3)
             }
         }
@@ -142,14 +142,14 @@ struct HideView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 TextField("", text: $q, prompt: Text("اسم الفلم أو المسلسل…").foregroundColor(ST.tx3))
-                    .font(.cairo(15)).foregroundStyle(Color.white).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
+                    .font(.cairo(15)).foregroundStyle(ST.tx).padding(12).background(ST.s2, in: RoundedRectangle(cornerRadius: 12))
                     .submitLabel(.search).onSubmit { Task { await search() } }
                 if !toast.isEmpty { Text(toast).font(.cairo(13, .bold)).foregroundStyle(ST.green) }
                 ForEach(Array(res.enumerated()), id: \.offset) { _, x in
                     HStack(spacing: 12) {
                         Poster(url: DW.img(jstr(x, "icon").isEmpty ? jstr(x, "poster") : jstr(x, "icon")))
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(Color.white).lineLimit(2)
+                            Text(DW.clean(jstr(x, "name"))).font(.cairo(14, .bold)).foregroundStyle(ST.tx).lineLimit(2)
                             Text(jstr(x, "cat")).font(.cairo(11)).foregroundStyle(ST.tx3).lineLimit(1)
                         }
                         Spacer()
@@ -159,7 +159,7 @@ struct HideView: View {
                     }.padding(10).background(ST.s1, in: RoundedRectangle(cornerRadius: 14))
                 }
                 if !hidden.isEmpty {
-                    Text("المخفيّة (\(hidden.count))").font(.cairo(16, .heavy)).foregroundStyle(Color.white).padding(.top, 10)
+                    Text("المخفيّة (\(hidden.count))").font(.cairo(16, .heavy)).foregroundStyle(ST.tx).padding(.top, 10)
                     ForEach(Array(hidden.enumerated()), id: \.offset) { _, x in
                         HStack {
                             Text(DW.clean(jstr(x, "name").isEmpty ? jstr(x, "id") : jstr(x, "name"))).font(.cairo(14)).foregroundStyle(ST.tx2).lineLimit(1)
