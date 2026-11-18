@@ -154,6 +154,7 @@ struct HomeBody: View {
                 t("catalog", "square.stack.3d.up.fill", "كلّ المزوّدين", ST.am, CatalogView()),
                 t("new", "sparkle", "جديد دورلي", ST.violet, NewestView()),
                 t("daily", "target", "ترشيح اليوم", ST.am, DailyView()),
+                t("night", "moon.stars.fill", "سهرة دورلي", ST.violet, NightAdminView()),
                 t("hide", "eye.slash.fill", "إخفاء عمل", pink, HideView()),
                 web("manager.html", "square.grid.3x3.fill", "مدير المحتوى", ST.blue),
                 web("dl.html", "arrow.down.circle.fill", "التنزيلات", ST.green),

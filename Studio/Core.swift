@@ -111,7 +111,7 @@ enum DW {
     static let session: URLSession = {
         let c = URLSessionConfiguration.default
         c.timeoutIntervalForRequest = 25; c.requestCachePolicy = .reloadIgnoringLocalCacheData
-        c.httpAdditionalHeaders = ["User-Agent": "Dawwirli-Studio/2.1"]
+        c.httpAdditionalHeaders = ["User-Agent": "Dawwirli-Studio/2.2"]
         return URLSession(configuration: c)
     }()
     static func enc(_ s: String) -> String { s.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? s }
